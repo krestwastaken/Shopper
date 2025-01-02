@@ -1,17 +1,23 @@
-import { BrowserRouter as Router ,Route, createBrowserRouter, createRoutesFromElements, RouterProvider } from 'react-router-dom';
+import { Route, createBrowserRouter, createRoutesFromElements, RouterProvider } from 'react-router-dom';
 
 import './App.css';
+
+//Components
 import Navbar from './Components/Navbar/Navbar';
+import ProtectedRoute from './Components/Route Protection/ProtectedRoute';
+
+//Pages
 import Product from './Pages/Product';
 import Cart from './Pages/Cart';
 import HomePage from './Pages/HomePage';
-// import CheckoutPage from './Pages/CheckoutPage';
+import CheckoutPage from './Pages/CheckoutPage';
 import MenCategory from './Pages/MenCategory';
 import WomenCategory from './Pages/WomenCategory';
-import Electronics from './Pages/Electronics';
 import AddProduct from './Pages/AddProduct';
 import LoginSignup from './Pages/Login';
 import SignUp from './Pages/SignUp';
+import MyProducts from './Pages/MyProducts';
+import WishList from './Pages/WishList';
 
 const router = createBrowserRouter(
   createRoutesFromElements(
@@ -23,8 +29,14 @@ const router = createBrowserRouter(
       <Route path='signup' element={<SignUp/>}/>
       <Route path='men' element={<MenCategory/>}/>
       <Route path='women' element={<WomenCategory/>}/>
-      <Route path='electronics' element={<Electronics/>}/>
-      <Route path='addProduct' element={<AddProduct/>}/>
+      <Route element={<ProtectedRoute allowedRoles={['buyer']}/>}>
+        <Route path='wishList' element={<WishList/>}/>
+        <Route path='checkout' element={<CheckoutPage/>}/>
+      </Route>
+      <Route element={<ProtectedRoute allowedRoles={['seller']} />}>
+        <Route path='addProduct' element={<AddProduct/>}/>
+        <Route path='my-products' element={<MyProducts/>}/>
+      </Route>
     </Route>
   )
 )
@@ -34,26 +46,5 @@ function App() {
     <RouterProvider router = {router} />
   )
 }
-
-
-// function App() {
-//   return (
-//     <Router>
-//       <div>
-//         <Navbar/>
-//         <Routes>
-//           <Route path='/' element={<HomePage/>}/>
-//           <Route path='/product/:id' element={<Product/>}/>
-//           <Route path='/cart' element={<Cart/>}/>
-//           <Route path='/login' element={<LoginSignup/>}/>
-//           <Route path='/men' element={<MenCategory/>}/>
-//           <Route path='/women' element={<WomenCategory/>}/>
-//           <Route path='/electronics' element={<Electronics/>}/>
-//           <Route path='/addProduct' element={<AddProduct/>}/>
-//         </Routes>
-//       </div>
-//     </Router>
-//   );
-// }
 
 export default App;

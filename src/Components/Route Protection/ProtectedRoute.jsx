@@ -1,21 +1,12 @@
-import React, { Component } from "react";
-import { Route, redirect } from "react-router-dom";
+import { Navigate, Outlet } from "react-router-dom";
+import React from 'react'
 
-const ProtectedRoute = ({ component: Component, role, ...rest }) => {
-    const userRole = localStorage.getItem('role'); //Fetch role from localStorage
+export default function ProtectedRoute({ allowedRoles }) {
+    const user = JSON.parse(localStorage.getItem('user')); //Fetch user info from local storage
 
-    return (
-        <Route 
-            {...rest}
-            render = {(props) => 
-                userRole === role ? (
-                    <Component {...props}/>
-                ) : (
-                    <redirect to= '/' /> //Redirect if user doesn't have right role
-                )
-            }
-        />
-    )
-};
-
-export default ProtectedRoute;
+    //Check if user exists and their role is allowed
+    if (!user || !allowedRoles.includes(user.role)) {
+        return <Navigate to='/' replace />;
+    }
+    return <Outlet/>
+}

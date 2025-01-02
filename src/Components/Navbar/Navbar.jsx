@@ -1,15 +1,24 @@
 import React, { useState, useEffect } from 'react'
-import { Link, NavLink, Outlet } from 'react-router-dom'
+import { NavLink, Outlet, useNavigate } from 'react-router-dom'
 
 import './Navbar.css'
 
-import logo from '../Assets/logo.png'
-import cart_icon from '../Assets/cart_icon.png'
+import Footer from '../Footer/Footer'
+import Title from '../company-name/Title'
 
+// Icons
+import { IoIosSearch } from 'react-icons/io';
+import { IoIosContact } from 'react-icons/io';
+import { CiHeart } from 'react-icons/ci';
+import { RiShoppingBag2Line } from 'react-icons/ri';
 
 export default function Navbar() {
-  const[menu, setMenu] = useState('shop')
   const [cartCount, setCartCount] = useState(0);
+  const [userRole, setUserRole] = useState(null);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [showDropdown, setShowDropdown] = useState(false);
+
+  const navigate = useNavigate();
 
   useEffect(() => {
     const updateCartCount = () => {
@@ -19,54 +28,138 @@ export default function Navbar() {
     };
     window.addEventListener('storage', updateCartCount);
 
+    //Get user from localStorage
+    const user = JSON.parse(localStorage.getItem('user'));
+    if (user) {
+      setUserRole(user.role);
+      setIsLoggedIn(true);
+    }
+
     return () => {
       window.removeEventListener('storage', updateCartCount);
     };
   }, []);
 
+  const handleLogout = () => {
+    localStorage.removeItem('user');
+    localStorage.removeItem('authToken');
+    setIsLoggedIn(false);
+    setUserRole(null);
+    setShowDropdown(false);
+    navigate('/login');
+  }
 
   return(
-    <div className='root-layout'>
-      <header>
-        <nav>
-          <h1>SHOPPER</h1>
-          <NavLink to='/'>Home</NavLink>
-          <NavLink to='/men'>Men</NavLink>
-          <NavLink to='/women'>Women</NavLink>
-          <NavLink to='/addProduct'>Add Products</NavLink>
-          {/* <NavLink to='/electronics'>Electronics</NavLink> */}
+    <div className='flex flex-col min-h-screen'>
+
+      {/* Header: Centralized */}
+      <header className='bg-white shadow-md sticky top-0 z-50'>
+        <nav className='flex justify-between items-center px-6 py-8 '>
+          <Title/>
+          <div className='flex-grow flex justify-center space-x-8'>
+            <NavLink to='/' className={({ isActive }) =>
+              `hover:text-lilac ${isActive ? 'text-lilac font-semibold' : 'text-gray-800'}`
+            }>
+              Home
+            </NavLink>
+
+            {userRole === 'buyer' && (
+              <>
+                <NavLink to='/men' className={({ isActive }) =>
+                  `hover:text-lilac ${isActive ? 'text-lilac font-semibold' : 'text-gray-800'}`
+                }>
+                  Men
+                </NavLink>
+                <NavLink to='/women' className={({ isActive }) => 
+                  `hover:text-lilac ${isActive ? 'text-lilac font-semibold' : 'text-gray-800'}`
+                }>
+                  Women
+                </NavLink>
+              </>
+            )}
+           
+            
+            {userRole === 'seller' && (
+              <>
+                <NavLink to='/addProduct' className={({ isActive }) => 
+                  `hover:text-lilac ${isActive ? 'text-lilac font-semibold' : 'text-gray-800'}`
+                }>
+                  Add Products
+                </NavLink>
+                <NavLink to='/my-products' className={({ isActive }) => 
+                  `hover:text-lilac ${isActive ? 'text-lilac font-semibold' : 'text-gray-800'}`
+                }>
+                  My Products
+                </NavLink>
+              </>
+            )}
+          </div>
+
+          {/* Right-Aligned Icons */}
+          <div className='flex items-center space-x-6'>  
+            {userRole === 'buyer' && (
+              <>
+                <NavLink to='/wishList'
+                  className={({ isActive }) => 
+                    isActive ? 'text-lilac' : 'text-gray-800'
+                  }
+                >
+                  <CiHeart size={21} className='hover:text-lilac transition'/>
+                </NavLink>
+                
+                <NavLink to='/cart'
+                  className={({ isActive }) => 
+                    isActive ? 'text-lilac' : 'text-gray-800'
+                  }
+                >
+                  <div className='relative inline-block'>
+                    <RiShoppingBag2Line size={20} className='hover:text-lilac transition'/>
+                    {cartCount > 0 && (
+                      <span className="absolute -top-2 -right-2 bg-lilac w-5 h-5 rounded-full text-white text-sm flex justify-center items-center" >
+                        {cartCount}
+                      </span>
+                    )}
+                  </div>              
+                </NavLink>
+              </>
+            )}
+
+            <div className='relative'>
+              <IoIosContact 
+                size={20}
+                className='cursor-pointer hover:text-lilac transition'
+                onClick={() => setShowDropdown((prev) => !prev)}
+              />
+              {showDropdown && (
+                <div className='absolute right-0 mt-2 w-40 bg-white border rounded shadow-md'>
+                  {isLoggedIn ? (
+                    <button 
+                      className='block w-full text-left px-4 py-2 hover:bg-gray-200'
+                      onClick={handleLogout}
+                    >
+                      Logout
+                    </button>
+                  ) : (
+                    <NavLink
+                      to='/login'
+                      className='block w-full text-left px-4 py-2 hover:bg-gray-200'
+                      onClick={()=> setShowDropdown(false)}
+                    >
+                      Login
+                    </NavLink>
+                  )}
+                </div>
+              )}
+            </div>            
+          </div>
         </nav>
       </header>
-      <div className="nav-login-cart">
-        {/* <Link to='/login'><button>Login</button></Link> */}
-        <NavLink to='/cart'><img src={cart_icon} alt=''/></NavLink>
-        <div className="nav-cart-count">{cartCount}</div>
-      </div>
-      <main>
+     
+      <main className='flex-grow p-4'>
         <Outlet/>
       </main>
+
+      <Footer/>
     </div>
   )
-
-  // return (
-  //   <div className='navbar'>
-  //       <div className='nav-logo'>
-  //           <img src={logo} alt='Shopping bags'/>
-  //           <p>SHOPPER</p>
-  //       </div>
-  //       <ul className="nav-menu">
-  //           <li onClick={()=>{setMenu('shop')}}><Link style={{textDecoration: 'none'}} to='/'>Shop</Link>{menu ==='shop' ? <hr/> :<></>}</li>
-  //           <li onClick={()=>{setMenu('men')}}><Link style={{textDecoration: 'none'}} to='/men'>Men</Link>{menu ==='men' ? <hr/> :<></>}</li>
-  //           <li onClick={()=>{setMenu('women')}}><Link style={{textDecoration: 'none'}} to='/women'>Women</Link>{menu ==='women' ? <hr/> :<></>}</li>
-  //           <li onClick={()=>{setMenu('addProduct')}}><Link style={{textDecoration: 'none'}} to='/addProduct'>Add Product</Link>{menu === 'addProduct' ? <hr/> : <></>}</li>
-  //           <li onClick={()=>{setMenu('electronics')}}><Link style={{textDecoration: 'none'}} to='/electronics'>Electronics</Link>{menu ==='electronics' ? <hr/> :<></>}</li>
-  //           <hr/>
-  //       </ul>
-  //       <div className="nav-login-cart">
-  //         <Link to='/login'><button>Login</button></Link>
-  //         <Link to='/cart'><img src={cart_icon} alt=''/></Link>
-  //         <div className="nav-cart-count">{cartCount}</div>
-  //       </div>
-  //   </div>
-  // )
 }
